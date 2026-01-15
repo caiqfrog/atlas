@@ -141,28 +141,24 @@ jobs:
 
       - name: Tag docker image
         run: |
-          docker tag atlas atlas:${{ steps.version.outputs.version }}
-          docker tag atlas-hbase atlas-hbase:${{ steps.version.outputs.version }}
-          docker tag atlas-kafka atlas-kafka:${{ steps.version.outputs.version }}
-          docker tag atlas-solr atlas-solr:${{ steps.version.outputs.version }}
-          docker tag atlas-zk atlas-zk:${{ steps.version.outputs.version }}
-          docker tag atlas-db atlas-db:${{ steps.version.outputs.version }}
+          containers=(atlas-zk atlas-solr atlas-kafka atlas-db atlas-hadoop atlas-hbase atlas-hive atlas);
+          for container in "${containers[@]}"; do
+            docker tag $container $container:${{ steps.version.outputs.version }}
+          done
 
       - name: Export docker image
         run: |
           mkdir -p dist
-          docker save atlas:${{ steps.version.outputs.version }} \
-            | gzip > dist/atlas-${{ steps.version.outputs.version }}.tar.gz
-          docker save atlas-hbase:${{ steps.version.outputs.version }} \
-            | gzip > dist/atlas-hbase-${{ steps.version.outputs.version }}.tar.gz
-          docker save atlas-kafka:${{ steps.version.outputs.version }} \
-            | gzip > dist/atlas-kafka-${{ steps.version.outputs.version }}.tar.gz
-          docker save atlas-solr:${{ steps.version.outputs.version }} \
-            | gzip > dist/atlas-solr-${{ steps.version.outputs.version }}.tar.gz
-          docker save atlas-zk:${{ steps.version.outputs.version }} \
-            | gzip > dist/atlas-zk-${{ steps.version.outputs.version }}.tar.gz
-          docker save atlas-db:${{ steps.version.outputs.version }} \
-            | gzip > dist/atlas-db-${{ steps.version.outputs.version }}.tar.gz
+          containers=(atlas-zk atlas-solr atlas-kafka atlas-db atlas-hadoop atlas-hbase atlas-hive atlas);
+          for container in "${containers[@]}"; do
+            docker save $container:${{ steps.version.outputs.version }} \
+              | gzip > dist/$container-${{ steps.version.outputs.version }}.tar.gz
+          done
+
+      - name: Create atlas-all.zip
+        run: |
+          cd dist
+          zip -r atlas-all-${{ steps.version.outputs.version }}.zip *.tar.gz
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -178,11 +174,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            dist/atlas-${{ steps.version.outputs.version }}.tar.gz
-            dist/atlas-hbase-${{ steps.version.outputs.version }}.tar.gz
-            dist/atlas-kafka-${{ steps.version.outputs.version }}.tar.gz
-            dist/atlas-solr-${{ steps.version.outputs.version }}.tar.gz
-            dist/atlas-zk-${{ steps.version.outputs.version }}.tar.gz
-            dist/atlas-db-${{ steps.version.outputs.version }}.tar.gz
+            dist/atlas-all.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
