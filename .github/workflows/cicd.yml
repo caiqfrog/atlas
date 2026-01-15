@@ -145,6 +145,7 @@ jobs:
           for container in "${containers[@]}"; do
             docker tag $container $container:${{ steps.version.outputs.version }}
           done
+          docker images
 
       - name: Export docker image
         run: |
