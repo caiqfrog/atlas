@@ -132,6 +132,19 @@ jobs:
               exit 1;
           fi
 
+      - name: Clear runner cache
+        run: |
+          # Check current disk usage
+          df -h
+          
+          # Clean up temporary files
+          sudo rm -rf /tmp/*
+          sudo rm -rf /var/tmp/*
+          
+          # Clear runner cache (use with caution)
+          rm -rf ~/actions-runner/cached/_diag/*.log
+          rm -rf ~/actions-runner/cached/_diag/older_logs/
+
       - name: Extract version
         id: version
         run: |
